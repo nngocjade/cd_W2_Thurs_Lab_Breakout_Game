@@ -18,7 +18,7 @@ function drawBall() {
   ctx.beginPath();
   ctx.arc(x, y, ballRadius, 0, Math.PI * 2); //ctx.arc("x-coordinate", "y-coordinate", "arc radius", "start angle", "end angle", "false");   //direction of drawing (false for clockwise, the default, or true for anti-clockwise.) This last parameter is optional.
 
-  ctx.fillStyle = "#0095DD";
+  ctx.fillStyle = color;
   ctx.fill();
   ctx.closePath();
 }
@@ -31,21 +31,24 @@ function draw() {
 
   if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
     color = getRandomColor();
+    ctx.fillStyle = color;
+    dx = -dx;
+
     console.group();
     console.log("%cx-color", "color: green;");
     console.log(color);
     console.groupEnd();
-    dx = -dx;
   }
 
   if (y + dy > canvas.height - ballRadius || y + dy < ballRadius) {
     color = getRandomColor();
+    ctx.fillStyle = color;
+    dy = -dy;
+
     console.group();
     console.log("%cy-color", "color:red;");
     console.log(color);
     console.groupEnd();
-
-    dy = -dy;
   }
 
   x += dx;
@@ -57,8 +60,8 @@ function convertToColor(num) {
 }
 
 function getRandomColor() {
-  number = Math.floor(Math.random() * 100000 + 1);
-  return convertToColor(number);
+  color = "#" + (((1 << 24) * Math.random()) | 0).toString(16);
+  return color;
 }
 
 setInterval(draw, 10);
