@@ -23,6 +23,24 @@ var interval = setInterval(draw, 10);
 var rightPressed = false; //default value is False because at the beginning the control buttons are not pressed
 var leftPressed = false; //default value is False because at the beginning the control buttons are not pressed
 
+// BRICKS
+// var brickRowCount = 3;
+// var brickColumnCount = 5;
+var brickWidth = 75;
+var brickHeight = 20;
+var brickPadding = 10;
+var brickOffsetTop = 30;
+var brickOffsetLeft = 30;
+
+var totlNumberOfRows = 5;
+var bricks = [];
+for (var c = 1; c <= totlNumberOfRows; c++) {
+  bricks[c] = [];
+  for (var r = 1; r <= c; r++) {
+    bricks[c][r] = { x: 0, y: 0 };
+  }
+}
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~~~~~~~~~~~~~~~~~~~[ BUTTONS TO CONTROL PADDLE ]~~~~~~~~~~~~~~~~
 
@@ -69,6 +87,26 @@ function drawPaddle() {
   ctx.closePath();
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~~~~~~[ DRAW BRICKS ]~~~~~~~~~~~~~~~~~~~~~~~~
+function drawBricks() {
+  // The code above will loop through the rows and columns and create the new bricks. NOTE that the brick objects will also be used for collision detection purposes later.
+  var totlNumberOfRows = 5;
+  for (var c = 1; c <= totlNumberOfRows; c++) {
+    for (var r = 1; r <= c; r++) {
+      var brickX = c * (brickWidth + brickPadding) + brickOffsetLeft; // assigning brick coordinate value instead of (0,0)
+      var brickY = r * (brickHeight + brickPadding) + brickOffsetTop; // assigning brick coordinate value instead of (0,0)
+
+      bricks[c][r].x = brickX;
+      bricks[c][r].y = brickY;
+      ctx.beginPath();
+      ctx.rect(brickX, brickY, brickWidth, brickHeight);
+      ctx.fillStyle = "#0095DD";
+      ctx.fill();
+      ctx.closePath();
+    }
+  }
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~[ GET A RANDOM HEX COLOR ]~~~~~~~~~~~~~~~~
 function getRandomColor() {
   var letters = "0123456789ABCDEF".split("");
@@ -88,32 +126,26 @@ function draw() {
   drawBall();
   // CALLING DRAW PADDLE FUNCTION HERE
   drawPaddle();
+  // CALLING DRAW BRICK FUNCTION HERE
+  drawBricks();
 
   // X - WALLS
   if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
-    // color = getRandomColor();
-    // ctx.fillStyle = color;
     dx = -dx;
-    /* console.group();
-     console.log("%cx-color", "color: green;");
-     console.log(color);
-     console.groupEnd(); */
   }
-
   // Y - WALLS
   if (y + dy < ballRadius) {
     dy = -dy;
-
-    /* console.group();
-    // console.log("%cy-color", "color:red;");
-    // console.log(color);
-       console.groupEnd(); */
   } else if (y + dy > canvas.height - ballRadius) {
     // COLLISION DETECTION - MAKING SURE WHETHER THE BALL HIT THE PADDLE, IF YES, CONTINUE BOUNCING
     if (x > paddleX && x < paddleX + paddleWidth) {
       color = getRandomColor(); //ball changes color everytime it hits the paddle
+      /* console.group();
+     console.log("%cx-color", "color: green;");
+     console.log(color);
+     console.groupEnd(); */
       ctx.fillStyle = color;
-      dy = -dy * 1.1; // ball speed increases by 10% every time it hits the paddle
+      dy = -dy * 1.1; // ball speed increases by 10% every time it hits the paddleHeight
     } else {
       alert("GAME OVER");
       document.location.reload();
