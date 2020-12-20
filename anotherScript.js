@@ -18,6 +18,8 @@ var paddleHeight = 20;
 var paddleWidth = 75;
 var paddleX = (canvas.width - paddleWidth) / 2;
 
+var interval = setInterval(draw, 10);
+
 var rightPressed = false; //default value is False because at the beginning the control buttons are not pressed
 var leftPressed = false; //default value is False because at the beginning the control buttons are not pressed
 
@@ -84,12 +86,13 @@ function draw() {
 
   // CALLING DRAW BALL FUNCTION HERE
   drawBall();
-  //CALLING DRAW PADDLE FUNCTION HERE
+  // CALLING DRAW PADDLE FUNCTION HERE
   drawPaddle();
 
+  // X - WALLS
   if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
-    color = getRandomColor();
-    ctx.fillStyle = color;
+    // color = getRandomColor();
+    // ctx.fillStyle = color;
     dx = -dx;
     /* console.group();
      console.log("%cx-color", "color: green;");
@@ -97,14 +100,25 @@ function draw() {
      console.groupEnd(); */
   }
 
-  if (y + dy > canvas.height - ballRadius || y + dy < ballRadius) {
-    color = getRandomColor();
-    ctx.fillStyle = color;
+  // Y - WALLS
+  if (y + dy < ballRadius) {
     dy = -dy;
+
     /* console.group();
     // console.log("%cy-color", "color:red;");
     // console.log(color);
        console.groupEnd(); */
+  } else if (y + dy > canvas.height - ballRadius) {
+    // COLLISION DETECTION - MAKING SURE WHETHER THE BALL HIT THE PADDLE, IF YES, CONTINUE BOUNCING
+    if (x > paddleX && x < paddleX + paddleWidth) {
+      color = getRandomColor(); //ball changes color everytime it hits the paddle
+      ctx.fillStyle = color;
+      dy = -dy * 1.1; // ball speed increases by 10% every time it hits the paddle
+    } else {
+      alert("GAME OVER");
+      document.location.reload();
+      clearInterval(interval); // Needed for Chrome to end game
+    }
   }
 
   x += dx;
@@ -125,5 +139,4 @@ function draw() {
   }
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//~~~~~~~~~~~~~~~~~~~[ ANIMATION CALL FUNCTION ]~~~~~~~~~~~~~~~~~~
-setInterval(draw, 10);
+//~~~~~~~~~~~~~~~~~~~[  ]~~~~~~~~~~~~~~~~~~
