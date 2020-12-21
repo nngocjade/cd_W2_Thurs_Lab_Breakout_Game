@@ -41,25 +41,6 @@ for (var c = 0; c < brickColumnCount; c++) {
 
 var score = 0;
 var lives = 3;
-
-CanvasRenderingContext2D.prototype.roundRect = function (
-  x,
-  y,
-  width,
-  height,
-  radius
-) {
-  if (width < 2 * radius) radius = width / 2;
-  if (height < 2 * radius) radius = height / 2;
-  this.beginPath();
-  this.moveTo(x + radius, y);
-  this.arcTo(x + width, y, x + width, y + height, radius);
-  this.arcTo(x + width, y + height, x, y + height, radius);
-  this.arcTo(x, y + height, x, y, radius);
-  this.arcTo(x, y, x + width, y, radius);
-  this.closePath();
-  return this;
-};
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~~~~~~~~~~~~~~[ KEYS & MOUSE TO CONTROL PADDLE ]~~~~~~~~~~~~~~~~
 
@@ -175,13 +156,6 @@ function drawBricks() {
         bricks[c][r].y = brickY;
         ctx.beginPath();
         ctx.rect(brickX, brickY, brickWidth, brickHeight);
-        // ctx.arcTo(
-        //   brickX + brickWidth,
-        //   brickY,
-        //   brickX + brickWidth,
-        //   brickY + cornerRadius,
-        //   cornerRadius
-        // );
         ctx.fillStyle = "#0095DD";
         ctx.fill();
         ctx.closePath();
