@@ -18,8 +18,6 @@ var paddleHeight = 20;
 var paddleWidth = 75;
 var paddleX = (canvas.width - paddleWidth) / 2;
 
-var interval = setInterval(draw, 10);
-
 var rightPressed = false; //default value is False because at the beginning the control buttons are not pressed
 var leftPressed = false; //default value is False because at the beginning the control buttons are not pressed
 
@@ -31,6 +29,7 @@ var brickHeight = 20;
 var brickPadding = 10;
 var brickOffsetTop = 30;
 var brickOffsetLeft = 30;
+var cornerRadius = 1;
 
 var bricks = [];
 for (var c = 0; c < brickColumnCount; c++) {
@@ -40,13 +39,38 @@ for (var c = 0; c < brickColumnCount; c++) {
   }
 }
 
+var score = 0;
+var lives = 3;
+
+CanvasRenderingContext2D.prototype.roundRect = function (
+  x,
+  y,
+  width,
+  height,
+  radius
+) {
+  if (width < 2 * radius) radius = width / 2;
+  if (height < 2 * radius) radius = height / 2;
+  this.beginPath();
+  this.moveTo(x + radius, y);
+  this.arcTo(x + width, y, x + width, y + height, radius);
+  this.arcTo(x + width, y + height, x, y + height, radius);
+  this.arcTo(x, y + height, x, y, radius);
+  this.arcTo(x, y, x + width, y, radius);
+  this.closePath();
+  return this;
+};
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//~~~~~~~~~~~~~~~~~~~[ BUTTONS TO CONTROL PADDLE ]~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~[ KEYS & MOUSE TO CONTROL PADDLE ]~~~~~~~~~~~~~~~~
 
 //When the keydown event is fired on any of the keys on your keyboard (when they are pressed), the keyDownHandler() function will be executed. The same pattern is true for the second listener:
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
 
+document.addEventListener("mousemove", mouseMoveHandler, false); //listening for mouse movement
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~[ KEY DOWN HANDLER ]~~~~~~~~~~~~~~~~~~~~~~
 // When we press a key down, this information is stored in a variable.
 function keyDownHandler(e) {
   if (e.key == "Right" || e.key == "ArrowRight") {
@@ -57,12 +81,49 @@ function keyDownHandler(e) {
     leftPressed = true;
   }
 }
-
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~[ KEY UP HANDLER ]~~~~~~~~~~~~~~~~~~~~~~~~
 function keyUpHandler(e) {
   if (e.key == "Right" || e.key == "ArrowRight") {
     rightPressed = false;
   } else if (e.key == "Left" || e.key == "ArrowLeft") {
     leftPressed = false;
+  }
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~[ MOUSE MOVE HANDLER ]~~~~~~~~~~~~~~~~~~~~~
+function mouseMoveHandler(e) {
+  var relativeX = e.clientX - canvas.offsetLeft;
+  if (relativeX > 0 && relativeX < canvas.width) {
+    paddleX = relativeX - paddleWidth / 2;
+  }
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~~[ COLLISION DETECTION ]~~~~~~~~~~~~~~~~~~~~
+function collisionDetection() {
+  for (var c = 0; c < brickColumnCount; c++) {
+    for (var r = 0; r < brickRowCount; r++) {
+      var b = bricks[c][r];
+      if (b.status == 1) {
+        if (
+          x > b.x &&
+          x < b.x + brickWidth &&
+          y > b.y &&
+          y < b.y + brickHeight
+        ) {
+          // BALL CHANGES COLOR EVERY TIME IT HITS A BRICK
+          color = getRandomColor();
+          ctx.fillStyle = color;
+          dy = -dy;
+          b.status = 0;
+          score++; // To award a score each time a brick is hit
+          if (score == brickRowCount * brickColumnCount) {
+            alert("YOU WIN, CONGRATULATIONS!");
+            document.location.reload(); // the function reloads the page and starts the game again once the alert button is clicked.
+          }
+        }
+      }
+    }
   }
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -86,27 +147,19 @@ function drawPaddle() {
   ctx.closePath();
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// ~~~~~~~~~~~~~~~~~~~~[ COLLISION DETECTION ]~~~~~~~~~~~~~~~~~~~
-function collisionDetection() {
-  for (var c = 0; c < brickColumnCount; c++) {
-    for (var r = 0; r < brickRowCount; r++) {
-      var b = bricks[c][r];
-      if (b.status == 1) {
-        if (
-          x > b.x &&
-          x < b.x + brickWidth &&
-          y > b.y &&
-          y < b.y + brickHeight
-        ) {
-          // BALL CHANGES COLOR EVERY TIME IT HITS A BRICK
-          color = getRandomColor();
-          ctx.fillStyle = color;
-          dy = -dy;
-          b.status = 0;
-        }
-      }
-    }
-  }
+// ~~~~~~~~~~~~~~~~~~~~~~~~[ DRAW SCORE ]~~~~~~~~~~~~~~~~~~~~~~~~~
+function drawScore() {
+  //to create and update the score display
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "#0095DD";
+  ctx.fillText("Score: " + score, 8, 20); //set the actual text, and where it will be placed ("text itself" + current # of points, coordination, coordination);
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~~~~~~[ DRAW LIVES ]~~~~~~~~~~~~~~~~~~~~~~~~~
+function drawLives() {
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "#0095DD";
+  ctx.fillText("Lives: " + lives, canvas.width - 65, 20);
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~[ DRAW BRICKS ]~~~~~~~~~~~~~~~~~~~~~~~~
@@ -122,6 +175,13 @@ function drawBricks() {
         bricks[c][r].y = brickY;
         ctx.beginPath();
         ctx.rect(brickX, brickY, brickWidth, brickHeight);
+        // ctx.arcTo(
+        //   brickX + brickWidth,
+        //   brickY,
+        //   brickX + brickWidth,
+        //   brickY + cornerRadius,
+        //   cornerRadius
+        // );
         ctx.fillStyle = "#0095DD";
         ctx.fill();
         ctx.closePath();
@@ -139,8 +199,8 @@ function getRandomColor() {
   }
   return color;
 }
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// ~~~~~~~~~~~~~~~~~~~~~~~~ [ DRAW ] ~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~~~~~~ [ DRAW ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 function draw() {
   // x & y coordintates of top left corner, the x & y coordinates of the bottom right corner
   ctx.clearRect(0, 0, canvas.width, canvas.height); //This clears the canvas, each time, before the canvas draws (This allows the ball to move without a trail)
@@ -149,6 +209,10 @@ function draw() {
   drawBall();
   // CALLING DRAW PADDLE FUNCTION HERE
   drawPaddle();
+  // CALLING DRAW SCORE FUNCTION HERE keeps the score up to date with every new frame
+  drawScore();
+  // CALLING DRAW LIVES FUNCTION HERE
+  drawLives();
   // CALLING DRAW BRICK FUNCTION HERE
   drawBricks();
   // CALLING COLLISION DECTECTION FUNCTION HERE
@@ -172,14 +236,20 @@ function draw() {
       ctx.fillStyle = color;
       dy = -dy * 1.1; // ball speed increases by 10% every time it hits the paddleHeight
     } else {
-      alert("GAME OVER");
-      document.location.reload();
-      clearInterval(interval); // Needed for Chrome to end game
+      // when the ball hits the bottom edge of the screen, we're subtracting one life from the lives variable. No lives left, game is lost. If there are still some lives left, then the position of the ball and paddle are reset, along with the movement of the ball.
+      lives--;
+      if (!lives) {
+        alert("GAME OVER");
+        document.location.reload();
+      } else {
+        x = canvas.width / 2;
+        y = canvas.height - 30;
+        dx = 2;
+        dy = -2;
+        paddleX = (canvas.width - paddleWidth) / 2;
+      }
     }
   }
-
-  x += dx;
-  y += dy;
 
   // THIS LOGIC MOVES THE PADDLE ON THE SCREEN
   if (rightPressed) {
@@ -194,6 +264,11 @@ function draw() {
       paddleX = 0;
     }
   }
+
+  x += dx;
+  y += dy;
+
+  requestAnimationFrame(draw); //This produces a more efficient, smoother animation loop than theolder setInvterval() method.
 }
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//~~~~~~~~~~~~~~~~~~~[  ]~~~~~~~~~~~~~~~~~~
+
+draw();
