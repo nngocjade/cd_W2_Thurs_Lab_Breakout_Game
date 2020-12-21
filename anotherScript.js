@@ -14,7 +14,7 @@ var ballRadius = 10;
 var hex;
 var color = getRandomColor();
 
-var paddleHeight = 20;
+var paddleHeight = 10;
 var paddleWidth = 75;
 var paddleX = (canvas.width - paddleWidth) / 2;
 
@@ -29,7 +29,6 @@ var brickHeight = 20;
 var brickPadding = 10;
 var brickOffsetTop = 30;
 var brickOffsetLeft = 30;
-var cornerRadius = 1;
 
 var bricks = [];
 for (var c = 0; c < brickColumnCount; c++) {
@@ -156,7 +155,7 @@ function drawBricks() {
         bricks[c][r].y = brickY;
         ctx.beginPath();
         ctx.rect(brickX, brickY, brickWidth, brickHeight);
-        ctx.fillStyle = "#0095DD";
+        ctx.fillStyle = "green";
         ctx.fill();
         ctx.closePath();
       }
@@ -208,10 +207,12 @@ function draw() {
      console.log(color);
      console.groupEnd(); */
       ctx.fillStyle = color;
-      dy = -dy * 1.1; // ball speed increases by 10% every time it hits the paddleHeight
+      dy = -dy * 1.2; // ball speed increases by 10% every time it hits the paddleHeight
     } else {
       // when the ball hits the bottom edge of the screen, we're subtracting one life from the lives variable. No lives left, game is lost. If there are still some lives left, then the position of the ball and paddle are reset, along with the movement of the ball.
       lives--;
+      brickWidth -= 20;
+      paddleWidth -= 25;
       if (!lives) {
         alert("GAME OVER");
         document.location.reload();
